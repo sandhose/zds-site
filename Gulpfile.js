@@ -43,16 +43,20 @@ gulp.task("clean-errors", function(cb) {
 /**
  * Bundles JS files using browserify (unused yet)
  */
-gulp.task("bundle", function() {
-  var bundler = watchify(browserify({
+
+function bundle(watch) {
+  var bundler = browserify({
     entries: ["./" + sourceDir + appFile],
     insertGlobals: true,
     cache: {},
     packageCache: {},
     fullpaths: true
-  }));
+  });
 
-  bundler.on("update", rebundle);
+  if(watch) {
+    bundler = watchify(bundler);
+    bundler.on("update", rebundle);
+  }
 
   function rebundle() {
     return bundler.bundle()
@@ -70,6 +74,13 @@ gulp.task("bundle", function() {
   }
 
   return rebundle();
+}
+gulp.task("bundle", function() {
+  return bundle();
+});
+
+gulp.task("bundle:watch", function() {
+  return bundle(true);
 });
 
 /**
@@ -169,7 +180,7 @@ gulp.task("images",  ["stylesheet"], function() {
  * Scripts concat and minify
  */
 gulp.task("scripts", function() {
-  return gulp.src(sourceDir + scriptsDir + "*.js")
+  return gulp.src([sourceDir + scriptsDir + "*.js", "!" + sourceDir + appFile])
     .pipe($.concat("main.js", { newLine: "\r\n\r\n" }))
     .pipe($.size({ title: "Scripts" }))
     .pipe(gulp.dest(destDir + scriptsDir))
@@ -191,8 +202,8 @@ gulp.task("jshint", function() {
 /**
  * Merge vendors and app scripts
  */
-gulp.task("merge-scripts", ["vendors", "scripts"], function() {
-  return gulp.src(destDir + scriptsDir + "{vendors,main}.js")
+gulp.task("merge-scripts", ["vendors", "scripts", "bundle"], function() {
+  return gulp.src(destDir + scriptsDir + "{vendors,main,app}.js")
     .pipe($.concat("all.js"))
     .pipe($.size({ title: "Scripts (all)" }))
     .pipe(gulp.dest(destDir + scriptsDir))
@@ -204,7 +215,7 @@ gulp.task("merge-scripts", ["vendors", "scripts"], function() {
 /**
  * Watch for files changes, then recompiles and livereloads
  */
-gulp.task("watch", function() {
+gulp.task("watch", ["bundle:watch"], function() {
   gulp.watch(sourceDir + scriptsDir + "*.js", ["jshint", "scripts"]);
   gulp.watch([sourceDir + imagesDir + "*.png", sourceDir + "smileys/*"], ["images"]);
   gulp.watch([sourceDir + sassDir + "**/*.scss", "!" + sourceDir + sassDir + "_sprite.scss"], ["stylesheet"]);
