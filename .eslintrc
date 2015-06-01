@@ -1,0 +1,13 @@
+{
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "jquery": true,
+    "es6": true,
+  },
+  "rules": {
+    "no-console": 1,
+    "no-debugger": 1,
+    "global-strict": 0
+  }
+}

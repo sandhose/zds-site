@@ -72,6 +72,35 @@ gulp.task("vendors", ["vendors-js", "vendors-css"], function() {
 });
 
 /**
+ * Compiles JS files
+ */
+gulp.task("webpack:build", function() {
+  return gulp.src(path.join(sourceDir, scriptsDir, "app.js"))
+    .pipe($.webpack({
+      devtool: "source-map",
+
+      module: {
+        preLoaders: [
+          { test: /.js$/, exclude: /node_modules/, loader: "eslint-loader" }
+        ],
+
+        loaders: [
+          { test: /.js$/, exclude: /node_modules/, loader: "babel-loader" }
+        ]
+      },
+
+      output: {
+        filename: "app.js"
+      },
+
+      eslint: {
+        configFile: "./.eslintrc"
+      }
+    }))
+    .pipe(gulp.dest(path.join(destDir, scriptsDir)));
+});
+
+/**
  * Compiles SASS files
  */
 gulp.task("stylesheet", ["sprite", "vendors"], function() {
@@ -183,7 +212,7 @@ gulp.task("merge-scripts", ["vendors", "scripts"], function() {
  * Watch for files changes, then recompiles and livereloads
  */
 gulp.task("watch", function() {
-  gulp.watch(path.join(sourceDir, scriptsDir, "*.js"), ["jshint", "scripts"]);
+  //gulp.watch(path.join(sourceDir, scriptsDir, "*.js"), ["jshint", "scripts"]);
   gulp.watch([path.join(sourceDir, imagesDir, "*.png"), path.join(sourceDir, "smileys/*")], ["images"]);
   gulp.watch([path.join(sourceDir, sassDir, "**/*.scss"), "!" + path.join(sourceDir, sassDir, "_sprite.scss")], ["stylesheet"]);
 
