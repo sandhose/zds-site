@@ -25,14 +25,19 @@ function accordeon($elem){
     });
 }
 
-export default function() {
-    debug("init");
+export default {
+    name: "accordeon",
+    register(app) {
+        app.on("ready", () => {
+            debug("init");
 
-    $(".main .sidebar.accordeon, .main .sidebar .accordeon")
-    .each(function() {
-        accordeon($(this));
-    })
-    .on("DOMNodeInserted", function(e) {
-        accordeon($(e.target));
-    });
-}
+            $(".main .sidebar.accordeon, .main .sidebar .accordeon")
+            .each(function() {
+                accordeon($(this));
+            })
+            .on("DOMNodeInserted", function(e) {
+                accordeon($(e.target));
+            });
+        });
+    }
+};

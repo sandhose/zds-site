@@ -1,4 +1,5 @@
 var gulp = require("gulp"),
+    webpack = require("webpack"),
     $ = require("gulp-load-plugins")(),
     sprite = require("css-sprite").stream,
     path = require("path"),
@@ -89,6 +90,18 @@ gulp.task("webpack:build", function() {
         ]
       },
 
+      plugins: [
+        new webpack.DefinePlugin({
+          CONFIG: {
+            apiEndpoint: "/api/",
+            mode: "production"
+          }
+        }),
+        new webpack.optimize.UglifyJsPlugin(),
+        new webpack.optimize.OccurenceOrderPlugin(),
+        new webpack.optimize.DedupePlugin()
+      ],
+
       output: {
         filename: "app.js"
       },
@@ -96,7 +109,43 @@ gulp.task("webpack:build", function() {
       eslint: {
         configFile: "./.eslintrc"
       }
-    }))
+    }, webpack))
+    .pipe(gulp.dest(path.join(destDir, scriptsDir)));
+});
+
+gulp.task("webpack:watch", function() {
+  return gulp.src(path.join(sourceDir, scriptsDir, "app.js"))
+    .pipe($.webpack({
+      devtool: "eval-source-map",
+      watch: true,
+
+      module: {
+        preLoaders: [
+          { test: /.js$/, exclude: /node_modules/, loader: "eslint-loader" }
+        ],
+
+        loaders: [
+          { test: /.js$/, exclude: /node_modules/, loader: "babel-loader" }
+        ]
+      },
+
+      plugins: [
+        new webpack.DefinePlugin({
+          CONFIG: {
+            apiEndpoint: JSON.stringify("/api/"),
+            mode: JSON.stringify("developpement")
+          }
+        })
+      ],
+
+      output: {
+        filename: "app.js"
+      },
+
+      eslint: {
+        configFile: "./.eslintrc"
+      }
+    }, webpack))
     .pipe(gulp.dest(path.join(destDir, scriptsDir)));
 });
 
@@ -211,7 +260,7 @@ gulp.task("merge-scripts", ["vendors", "scripts"], function() {
 /**
  * Watch for files changes, then recompiles and livereloads
  */
-gulp.task("watch", function() {
+gulp.task("watch:common", function() {
   //gulp.watch(path.join(sourceDir, scriptsDir, "*.js"), ["jshint", "scripts"]);
   gulp.watch([path.join(sourceDir, imagesDir, "*.png"), path.join(sourceDir, "smileys/*")], ["images"]);
   gulp.watch([path.join(sourceDir, sassDir, "**/*.scss"), "!" + path.join(sourceDir, sassDir, "_sprite.scss")], ["stylesheet"]);
@@ -223,6 +272,8 @@ gulp.task("watch", function() {
 
   $.livereload.listen();
 });
+
+gulp.task("watch", ["watch:common", "webpack:watch"]);
 
 /**
  * Tests
@@ -237,7 +288,7 @@ gulp.task("travis", ["test", "build"]);
 /**
  * Build all the things!
  */
-gulp.task("build", ["images", "sprite", "stylesheet", "merge-scripts"]);
+gulp.task("build", ["images", "sprite", "stylesheet"]);
 
 /**
  * Default task: build and watch
