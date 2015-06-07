@@ -3,12 +3,14 @@
  */
 
 "use strict";
+import "babel/polyfill";
 import $ from "jquery";
 import { EventEmitter } from "events";
 import _debug from "debug";
 
 import accessibilityLinks from "./accessibility-links";
 import accordeon from "./accordeon";
+import autocomplete from "./autocompletion";
 
 let debug = _debug("zds:main");
 
@@ -17,7 +19,7 @@ class ZesteDeSavoir extends EventEmitter {
         super();
         debug(`booting app in ${CONFIG.mode} mode`);
 
-        this.register(accessibilityLinks, accordeon);
+        this.register(accessibilityLinks, accordeon, autocomplete);
 
         $(document).ready(() => {
             debug("dom ready");
