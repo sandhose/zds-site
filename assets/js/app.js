@@ -11,6 +11,7 @@ import _debug from "debug";
 import accessibilityLinks from "./accessibility-links";
 import accordeon from "./accordeon";
 import autocomplete from "./autocompletion";
+import closeAlertBox from "./close-alert-box";
 
 let debug = _debug("zds:main");
 
@@ -19,7 +20,9 @@ class ZesteDeSavoir extends EventEmitter {
         super();
         debug(`booting app in ${CONFIG.mode} mode`);
 
-        this.register(accessibilityLinks, accordeon, autocomplete);
+        this.modules = new Map();
+
+        this.register(accessibilityLinks, accordeon, autocomplete, closeAlertBox);
 
         $(document).ready(() => {
             debug("dom ready");
@@ -32,9 +35,12 @@ class ZesteDeSavoir extends EventEmitter {
             if(module === undefined) {
                 debug("can't register module, undefined");
             }
-            else if(typeof module.register === "function") {
+            else if(this.modules.has(module.name)) {
+                debug("module %s already registered !", module.name);
+            }
+            else if(typeof module.register === "function" && module.name) {
                 debug("registering module %s", module.name);
-                module.register(this);
+                this.modules.set(module.name, module.register(this));
             }
             else {
                 debug("malformed module. please export `register` function");

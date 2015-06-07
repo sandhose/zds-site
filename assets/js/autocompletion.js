@@ -6,7 +6,7 @@
 import $ from "jquery";
 import _debug from "debug";
 
-let debug = _debug("autocomplete");
+let debug = _debug("zds:autocomplete");
 
 class Autocomplete {
     constructor({ input, options }) {
@@ -311,7 +311,7 @@ export default {
     name: "autocomplete",
     register(app) {
         app.on("ready", () => {
-            $("[data-autocomplete]").autocomplete();
+            $("[data-autocomplete]").each((index, element) => element.autocomplete());
             $("#content").on("DOMNodeInserted", "input", function(e) {
                 let $input = $(e.target);
                 if ($input.is("[data-autocomplete]")) {
