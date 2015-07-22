@@ -24,6 +24,9 @@ ENV LANG C.UTF-8
 # Install pandoc
 RUN cabal update && cabal install pandoc
 
+# Adding pandoc to PATH
+ENV PATH /root/.cabal/bin:$PATH
+
 # Install pip
 RUN curl -SL 'https://bootstrap.pypa.io/get-pip.py' | python2
 
