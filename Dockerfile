@@ -5,12 +5,24 @@ RUN sed -i "s/ main$/ main contrib/" /etc/apt/sources.list
 
 RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --fix-missing \
 	python2.7-dev \
 	libmysqlclient-dev \
 	ttf-mscorefonts-installer \
 	python-mysqldb \
-	unzip
+	unzip \
+	texlive \
+	texlive-xetex \
+	texlive-lang-french \
+	texlive-latex-extra \
+	haskell-platform
+
+# Set locale
+#RUN locale-gen fr_FR.UTF-8
+ENV LANG C.UTF-8
+
+# Install pandoc
+RUN cabal update && cabal install pandoc
 
 # Install pip
 RUN curl -SL 'https://bootstrap.pypa.io/get-pip.py' | python2
