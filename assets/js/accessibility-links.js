@@ -1,21 +1,25 @@
-/* ===== Zeste de Savoir ====================================================
-   Managment of accessibility links
-   ---------------------------------
-   Author: Alex-D / Alexandre Demode
-   ========================================================================== */
+/**
+ * Zeste de Savoir - Accessibility links
+ */
 
-(function($, undefined){
-    "use strict";
+"use strict";
+let debug = require("debug")("zds:accessibility-link");
+import tabbable from "tabbable";
 
-    $("#accessibility a").on("focus", function() {
-        $(".dropdown:visible").parent().find(".active").removeClass("active");
-        $("#accessibility").addClass("focused");
-    }).on("blur", function() {
-        $("#accessibility").removeClass("focused");
-    }).on("click", function() {
-        var link = $(this).attr("href");
-        setTimeout(function() { // Forces the focus on next tick
-            $(link).find(":tabbable").first().focus(); // Focus the first focusable element
-        });
+module.exports = function(app) {
+    app.on("dom ready", () => {
+        let accessibility = document.getElementById("accessibility");
+        debug("init");
+
+        for(let link of accessibility.querySelectorAll("a")) {
+          link.addEventListener("focus", () => accessibility.classList.add("focused"));
+          link.addEventListener("blur", () => accessibility.classList.remove("focused"));
+          link.addEventListener("click", () => {
+              setTimeout(() => {
+                let l = tabbable(document.querySelector(link.getAttribute("href")));
+                l.length > 0 && l[0].focus();
+              })
+          });
+        }
     });
-})(jQuery);
+};
