@@ -9,7 +9,8 @@ let debug = _debug("zds:app");
 require("babel-polyfill");
 
 let modules = [
-  require("./accessibility-links.js")
+  require("./accessibility-links.js"),
+  require("./accordeon.js")
 ];
 
 class App extends EventEmitter {
@@ -19,20 +20,20 @@ class App extends EventEmitter {
         this.modules = [];
 
         document.addEventListener("DOMContentLoaded", () => {
-          this.emit("dom ready");
-          debug("dom ready");
+            this.emit("dom ready");
+            debug("dom ready");
         });
 
         this.register(...modules);
     }
 
     register(...modules) {
-       for(let mod of modules) {
-         if(typeof mod !== "function") continue;
-         mod(this);
-       }
+        for(let mod of modules) {
+          if(typeof mod !== "function") continue;
+            mod(this);
+        }
 
-       debug("loaded modules");
+        debug("loaded modules");
     }
 
     enableDebug(...params) {
