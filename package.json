@@ -10,7 +10,9 @@
     "test": "gulp test",
     "travis": "gulp travis",
     "build": "gulp build",
-    "clean": "gulp clean"
+    "clean": "gulp clean",
+    "watch-js": "watchify assets/js/app.js -o 'exorcist dist/js/app.js.map > dist/js/app.js' -d",
+    "build-js": "browserify assets/js/app.js --debug | exorcist dist/js/app.js.map > dist/js/app.js"
   },
   "repository": {
     "type": "git",
@@ -21,10 +23,16 @@
     "url": "https://github.com/zestedesavoir/zds-site/issues"
   },
   "homepage": "https://github.com/zestedesavoir/zds-site",
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
+  },
   "dependencies": {
     "autoprefixer": "^6.1.0",
     "cookies-eu-banner": "1.2.7",
     "cssnano": "^3.3.2",
+    "debug": "^2.2.0",
     "del": "2.0.2",
     "gulp": "3.9.0",
     "gulp-concat": "2.6.0",
@@ -43,8 +51,13 @@
     "sprity": "1.0.7"
   },
   "devDependencies": {
+    "babel-preset-es2015": "^6.3.13",
+    "babelify": "^7.2.0",
+    "browserify": "^12.0.1",
+    "exorcist": "^0.4.0",
     "gulp-jshint": "1.11.2",
     "gulp-livereload": "3.8.1",
-    "jshint-stylish": "2.0.1"
+    "jshint-stylish": "2.0.1",
+    "watchify": "^3.6.1"
   }
 }
