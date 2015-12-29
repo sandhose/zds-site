@@ -9,8 +9,8 @@ let debug = _debug("zds:app");
 require("babel-polyfill");
 
 let modules = [
-  require("./accessibility-links.js"),
-  require("./accordeon.js")
+  require("./modules/accessibility-links.js"),
+  require("./modules/accordeon.js")
 ];
 
 class App extends EventEmitter {
@@ -24,16 +24,13 @@ class App extends EventEmitter {
             debug("dom ready");
         });
 
-        this.register(...modules);
+        this.register(...modules)
+            .then(() => debug("loaded modules"))
+            .catch(reason => debug("failed to load modules", reason));
     }
 
     register(...modules) {
-        for(let mod of modules) {
-          if(typeof mod !== "function") continue;
-            mod(this);
-        }
-
-        debug("loaded modules");
+        return Promise.all(modules);
     }
 
     enableDebug(...params) {
