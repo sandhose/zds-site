@@ -1,3 +1,18 @@
+NPM_BIN     := node_modules/.bin
+FRONT_SRC   := assets
+FRONT_OUT   := dist
+JS_SRC      := $(FRONT_SRC)/js
+JS_OUT      := $(FRONT_OUT)/js
+SCSS_SRC    := $(FRONT_SRC)/scss
+CSS_OUT     := $(FRONT_OUT)/css
+IMG_SRC     := $(FRONT_SRC)/images
+IMG_OUT     := $(FRONT_OUT)/images
+SPRITE_SRC  := $(IMG_SRC)/sprite
+SMILEYS_SRC := $(FRONT_SRC)/smileys
+SMILEYS_OUT := $(FRONT_OUT)/smileys
+
+WATCH := false
+
 all: help
 
 # install
@@ -51,20 +66,112 @@ test-back:
 # front
 ## front-utils
 
-build-front:
-	npm run build
+build-front: stylesheet imagemin js
 
 clean-front:
-	npm run clean
+	$(RM) -r $(FRONT_OUT)/*
+	$(RM) -r $(SCSS_SRC)/vendors
+	$(RM) $(SCSS_SRC)/_sprite.scss
 
 install-front:
 	npm install
 
-lint-front:
-	npm run lint
+watch-front: build-front
+	make -B -j2 WATCH=true dist/css/main.css dist/css/main.min.css
 
-watch-front:
-	npm run gulp
+# Sprite generation using `sprity`
+sprites := $(wildcard $(SPRITE_SRC)/*.png)
+sprite_out := $(SCSS_SRC)/_sprite.scss $(IMG_OUT)/sprite.png $(IMG_OUT)/sprite@2x.png
+
+sprite: $(sprite_out)
+$(sprite_out): $(sprites)
+	@echo "generating sprite"
+	@$(NPM_BIN)/sprity create \
+	  --css-path '../images/' \
+	  --dimension 1:72 \
+	  --dimension 2:192 \
+	  --margin 0 \
+	  --template $(SCSS_SRC)/sprite-template.hbs \
+	  --style ../../$(SCSS_SRC)/_sprite.scss \
+	  $(IMG_OUT) $^
+
+# Image optimization using `imagemin`
+images := $(patsubst $(IMG_SRC)/%.png,$(IMG_OUT)/%.png,$(wildcard $(IMG_SRC)/*.png))
+smileys := $(patsubst $(SMILEYS_SRC)/%,$(SMILEYS_OUT)/%,$(wildcard $(SMILEYS_SRC)/*))
+
+imagemin: imagemin-images imagemin-smileys
+imagemin-images: $(images)
+imagemin-smileys: $(smileys)
+
+$(images) $(smileys): $(FRONT_OUT)/%: $(FRONT_SRC)/%
+	@echo "optimizing $*"
+	@$(NPM_BIN)/imagemin \
+	  --interlaced \
+	  --progressive \
+	  --optimizationLevel 3 \
+	  $^ $(@D)
+
+# SCSS processing using `node-sass` and `postcss`
+scss := $(wildcard $(SCSS_SRC)/**/*.scss)
+
+minify_deps := $(CSS_OUT)/main.css
+ifeq ($(WATCH),true)
+  node_sass_args := --watch
+  postcss_args := --watch
+  echo_mode := (watching)
+  minify_deps :=
+endif
+
+# main.scss > node-sass > postcss (autoprefixer + cssnano) > main.css + main.css.map
+stylesheet: $(CSS_OUT)/main.min.css
+$(CSS_OUT)/main.css $(CSS_OUT)/main.css.map: $(SCSS_SRC)/_sprite.scss $(SCSS_SRC)/vendors/_normalize.scss $(scss)
+	@echo "processing main.scss $(echo_mode)"
+	@$(NPM_BIN)/node-sass \
+	  $(node_sass_args) \
+	  --source-map $(CSS_OUT)/main.css.map \
+	  --source-map-contents \
+	  --source-map-root '../../' \
+	  $(SCSS_SRC)/main.scss \
+	  $(CSS_OUT)/main.css
+
+$(CSS_OUT)/main.min.css $(CSS_OUT)/main.min.css.map: $(minify_deps)
+	@echo "minifying main.css $(echo_mode)"
+	@$(NPM_BIN)/postcss \
+	  $(postcss_args) \
+	  --use autoprefixer \
+	  --autoprefixer.browsers 'last 2 version, > 1%' \
+	  --use cssnano \
+	  --map $(CSS_OUT)/main.min.css.map \
+	  --output $(CSS_OUT)/main.min.css \
+	  $(CSS_OUT)/main.css
+
+# Copy CSS vendors
+$(SCSS_SRC)/vendors/_normalize.scss: node_modules/normalize.css/normalize.css
+	mkdir -p $(@D)
+	cp $^ $@
+
+js_vendors := node_modules/jquery/dist/jquery.js node_modules/cookies-eu-banner/dist/cookies-eu-banner.js
+js := $(wildcard $(JS_SRC)/*.js)
+
+js: $(JS_OUT)/script.js
+$(JS_OUT)/script.js: $(js_vendors) $(js)
+	@mkdir -p $(JS_OUT)
+	@echo "minifying javascript files"
+	@$(NPM_BIN)/uglifyjs \
+	  $^ \
+	  --mangle \
+	  --compress \
+	  --screw-ie8 \
+	  --source-map $@.map \
+	  --source-map-url $(@F).map \
+	  --source-map-root / \
+	  --output $@
+
+lint-front:
+	$(NPM_BIN)/jshint \
+	  --exclude $(JS_SRC)/_custom.modernizr.js \
+	  --reporter=node_modules/jshint-stylish/index.js \
+	  $(JS_SRC)/*.js
 
 # generic utils
 
