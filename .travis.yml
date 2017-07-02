@@ -3,12 +3,12 @@ sudo: required
 addons:
   apt:
     packages:
-    - mysql-server-5.6
-    - mysql-client-core-5.6
-    - mysql-client-5.6
-    - language-pack-fr
-    - unzip
-    - oracle-java8-set-default
+      - mysql-server-5.6
+      - mysql-client-core-5.6
+      - mysql-client-5.6
+      - language-pack-fr
+      - unzip
+      - oracle-java8-set-default
 
 git:
   depth: 1
@@ -41,16 +41,17 @@ cache:
   apt: true
   pip: true
   directories:
-    - $HOME/.cabal
     - $HOME/.fonts
     - $HOME/.nvm
-    - $HOME/.pandoc
     - $HOME/.texlive
     - $HOME/bin
 
 before_install:
   # see https://docs.travis-ci.com/user/database-setup/#Installing-specific-versions-of-ElasticSearch
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.3.0.deb && sudo dpkg -i --force-confnew elasticsearch-5.3.0.deb && sudo service elasticsearch start
+  - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+  - sudo apt-get update -qyy && sudo apt-get install yarn -qyy
 
 before_script:
   # MySQL config
@@ -72,26 +73,25 @@ install:
   - ./scripts/install_texlive.sh
   - |
     # cache these no matter what
-    if ls $HOME/.nvm/alias/lts/\* 1> /dev/null 2>&1; then
+    if ls $HOME/.nvm/alias/lts/boron 1> /dev/null 2>&1; then
       echo "Using cached nvm"
     else
       touch $HOME/.cache_updated
-      nvm install 'lts/*'
+      nvm install
+      nvm use
     fi
 
-    # only for front tests
-    if [[ "$TEST_APP" == *"front"* ]]; then
-      nvm use 'lts/*'
-      npm install -g npm
-    fi
+    yarn
+
   - ./scripts/install_resources.sh
   - export PATH=$HOME/.texlive/bin/x86_64-linux:$PATH
   - export PATH=$PATH:$HOME/bin
   # Python dependencies
   - travis_retry pip install coveralls
-  - travis_retry pip install tox==2.0.1
+  - travis_retry pip install tox==2.7.0
 
 script:
+  - make zmd-start
   - tox $TEST_APP
   - |
     # avoid cache update & upload when we didn't explicitely change its content
@@ -99,7 +99,7 @@ script:
       echo "Cache updated."
     else
       echo "Cache not updated."
-      rm -rf $HOME/.cabal $HOME/.fonts $HOME/.nvm $HOME/.pandoc $HOME/.texlive $HOME/bin
+      rm -rf $HOME/.fonts $HOME/.nvm $HOME/.texlive $HOME/bin
     fi
 
 after_success:

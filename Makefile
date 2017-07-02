@@ -17,8 +17,8 @@ install-archlinux:
 	sudo pacman -Sy git python2 python2-setuptools python2-pip libxml2 python2-lxml libxslt zlib python2-sqlparse libffi libjpeg-turbo freetype2 python2-tox base-devel
 
 install-osx:
-	brew install gettext cairo --without-x11 py2cairo node && \ 
-	pip install virtualenv virtualenvwrapper 
+	brew install gettext cairo --without-x11 py2cairo node && \
+	pip install virtualenv virtualenvwrapper
 
 # dev back
 ## django
@@ -40,6 +40,17 @@ index-all:
 index-flagged:
 	python manage.py es_manager index_flagged
 
+## zmd utils
+zmd-start: zmd-stop
+	npm run zmd-start
+
+zmd-stop:
+	npm run zmd-stop
+
+zmd-test:
+	npm run zmd-stop;
+	npm run zmd-start && \
+	python zmd-server-test.py
 
 ## back-utils
 clean-back:
@@ -54,11 +65,10 @@ lint-back:
 report-release-back:
 	python scripts/release_generator.py
 
-run-back:
+run-back: zmd-start
 	python manage.py runserver 0.0.0.0:8000
 
-test-back:
-	make clean-back && \
+test-back: clean-back zmd-test
 	python manage.py test --settings zds.settings_test_local
 
 # front
