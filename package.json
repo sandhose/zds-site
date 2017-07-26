@@ -26,10 +26,12 @@
   "homepage": "https://github.com/zestedesavoir/zds-site",
   "dependencies": {
     "autoprefixer": "6.5.3",
+    "body-parser": "^1.17.2",
     "clone": "^2.1.1",
     "cookies-eu-banner": "1.2.7",
     "cssnano": "3.8.1",
     "del": "2.2.2",
+    "express": "^4.15.3",
     "gulp": "3.9.1",
     "gulp-concat": "2.6.1",
     "gulp-imagemin": "3.1.1",
@@ -42,8 +44,7 @@
     "jquery": "3.1.1",
     "normalize.css": "4.2.0",
     "pm2": "^2.5.0",
-    "zerorpc": "^0.9.7",
-    "zmarkdown": "0.0.48"
+    "zmarkdown": "^0.0.51"
   },
   "devDependencies": {
     "gulp-jshint": "2.0.4",
