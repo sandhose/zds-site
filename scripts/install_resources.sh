@@ -9,7 +9,7 @@ else
   touch $HOME/.cache_updated
   echo "Installing texlive to \$HOME/.texlive"
   rm -rf $HOME/.texlive
-  TEXLIVE_PROFILE=${BASH_SOURCE[0]/%install_texlive.sh/texlive.profile}
+  TEXLIVE_PROFILE=${BASH_SOURCE[0]/%install_resources.sh/texlive.profile}
 
   # Create install dir
   mkdir -p $HOME/.texlive/
@@ -31,8 +31,3 @@ else
 
   echo "Installation complete !"
 fi
-
-# Symlink the binaries to ~/bin
-for i in $HOME/.texlive/bin/x86_64-linux/*; do
-  ln -sf $i $HOME/bin/
-done
