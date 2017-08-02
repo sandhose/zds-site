@@ -94,7 +94,7 @@ gulp.task('css:vendors', () =>
 
 // Compiles the SCSS files to CSS
 gulp.task('css', ['css:sprite', 'css:vendors'], () =>
-    gulp.src('assets/scss/main.scss')
+    gulp.src(['assets/scss/main.scss', 'assets/scss/zmd.scss'])
         .pipe(sourcemaps.init())
         .pipe(sass({ sourceMapContents: true }))
         .pipe(postcss(postcssPlugins))
